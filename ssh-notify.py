@@ -6,15 +6,14 @@
 # -----------------------
 
 import argparse
-import base64
-import json
 import re
 from pathlib import Path
 
+from ext import file_ops
+
 # ---------- START Program Constants ----------
 __author__ = "Theo Technicguy"
-__version__ = "0.0.2"
-WORK_DIR = Path(".")
+__version__ = "0.0.3"
 RECORD_PATH = Path("~/.ssh/record.json").expanduser()
 # ---------- END Program Constants ----------
 
@@ -30,17 +29,9 @@ ip_parser = subparser.add_parser(
 ip_sub_parser = ip_parser.add_subparsers(dest="ip_action", required=True)
 
 ip_list_parser = ip_sub_parser.add_parser("list", help="List recorded IPs.")
-ip_add_parser = ip_sub_parser.add_parser("add", help="Add IPs to record.")
-ip_rm_parser = ip_sub_parser.add_parser("del", help="Delete IPs from record.")
-ip_reset_parser = ip_sub_parser.add_parser("reset", help="Reset data for an IP.")
-
 ip_list_parser.add_argument(
     "-f", "--find", dest="find", help="IP address (part) to look for."
 )
-ip_add_parser.add_argument("ip_addr", nargs="+", help="IP address to add.")
-ip_rm_parser.add_argument("ip_addr", nargs="+", help="IP address to delete.")
-ip_reset_parser.add_argument("ip_addr", nargs="+", help="IP address to reset.")
-
 ip_list_parser.add_argument(
     "--no-hide",
     action="store_true",
@@ -51,10 +42,19 @@ ip_list_parser.add_argument(
     action="store_true",
     help="Padd IPs with leading zeros.",
 )
+
+ip_add_parser = ip_sub_parser.add_parser("add", help="Add IPs to record.")
+ip_add_parser.add_argument("ip_addr", nargs="+", help="IP address to add.")
+
+ip_rm_parser = ip_sub_parser.add_parser("del", help="Delete IPs from record.")
+ip_rm_parser.add_argument("ip_addr", nargs="+", help="IP address to delete.")
+
+ip_reset_parser = ip_sub_parser.add_parser("reset", help="Reset data for an IP.")
+ip_reset_parser.add_argument("ip_addr", nargs="+", help="IP address to reset.")
+
 # ~~~~~~~~~ END IP Parser ~~~~~~~~~
 
 args = parser.parse_args()
-
 # ---------- END Argument Parser ----------
 
 print("#" * 15)
@@ -65,8 +65,7 @@ if args.action == "ip":
 
     # Start by checking if there is a record file.
     try:
-        with RECORD_PATH.open("rb") as file:
-            record = json.loads(base64.b64decode(file.read()))
+        record = file_ops.read(RECORD_PATH)
     except FileNotFoundError:
         print("You do not have a record file setup.")
         exit()
@@ -145,10 +144,6 @@ if args.action == "ip":
                 }
                 print("Added", ip, "to known IPs.")
 
-        with RECORD_PATH.open("wb") as file:
-            file.write(base64.b64encode(json.dumps(record).encode()))
-        exit()
-
     if args.ip_action == "del":
         for ip in ips:
             if ip not in record.keys():
@@ -156,10 +151,6 @@ if args.action == "ip":
             else:
                 del record[ip]
                 print("Deleted", ip, "from known IPs.")
-
-        with RECORD_PATH.open("wb") as file:
-            file.write(base64.b64encode(json.dumps(record).encode()))
-        exit()
 
     if args.ip_action == "reset":
         for ip in ips:
@@ -173,6 +164,5 @@ if args.action == "ip":
                 }
                 print("Reset", ip)
 
-        with RECORD_PATH.open("wb") as file:
-            file.write(base64.b64encode(json.dumps(record).encode()))
-        exit()
+    file_ops.write(RECORD_PATH, record)
+    exit()
