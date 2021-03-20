@@ -13,7 +13,7 @@ from pathlib import Path
 
 # ---------- START Program Constants ----------
 __author__ = "Theo Technicguy"
-__version__ = "0.0.1"
+__version__ = "0.0.2"
 WORK_DIR = Path(".")
 RECORD_PATH = Path("~/.ssh/record.json").expanduser()
 # ---------- END Program Constants ----------
@@ -34,6 +34,9 @@ ip_add_parser = ip_sub_parser.add_parser("add", help="Add IPs to record.")
 ip_rm_parser = ip_sub_parser.add_parser("del", help="Delete IPs from record.")
 ip_reset_parser = ip_sub_parser.add_parser("reset", help="Reset data for an IP.")
 
+ip_list_parser.add_argument(
+    "-f", "--find", dest="find", help="IP address (part) to look for."
+)
 ip_add_parser.add_argument("ip_addr", nargs="+", help="IP address to add.")
 ip_rm_parser.add_argument("ip_addr", nargs="+", help="IP address to delete.")
 ip_reset_parser.add_argument("ip_addr", nargs="+", help="IP address to reset.")
@@ -77,24 +80,26 @@ if args.action == "ip":
         )
         print(sep)
         for ip, info in record.items():
-            ip_segments = ip.split(".")
+            # Print all IPs if find is not specified
+            if args.find is None or args.find in ip:
+                ip_segments = ip.split(".")
 
-            # Zero-fill/padding
-            if args.padd_zero:
-                for idx, segment in enumerate(ip_segments):
-                    while len(segment) < 3:
-                        segment = "0" + segment
-                    ip_segments[idx] = segment
+                # Zero-fill/padding
+                if args.padd_zero:
+                    for idx, segment in enumerate(ip_segments):
+                        while len(segment) < 3:
+                            segment = "0" + segment
+                        ip_segments[idx] = segment
 
-            # Hide bytes 2 and 3 in IP.
-            if not args.no_hide:
-                ip_segments[1:3] = ["***"] * 2
+                # Hide bytes 2 and 3 in IP.
+                if not args.no_hide:
+                    ip_segments[1:3] = ["***"] * 2
 
-            ip = ".".join(ip_segments)
-            print(
-                f"| {ip:15} | {info['first_connection']:26} |"
-                + f" {info['last_connection']:26} | {info['count']!s:11} |"
-            )
+                ip = ".".join(ip_segments)
+                print(
+                    f"| {ip:15} | {info['first_connection']:26} |"
+                    + f" {info['last_connection']:26} | {info['count']!s:11} |"
+                )
         print(sep)
         exit()
 
