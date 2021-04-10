@@ -7,7 +7,7 @@
 
 # ---------- START Program Constants ----------
 __author__ = "Theo Technicguy"
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 __doc__ = "Standard Colours Library"
 # ---------- END Program Constants ----------
 
@@ -65,12 +65,12 @@ colours = [
 
 
 def rgb_to_hex(rgb: tuple) -> str:
-    """Retrun a hexadeimal repesetation of the colour.
+    """Retrun a hexadecimal repesetation of the colour.
 
     pre: --
     param: rgb: tuple - a RGB tuple notation of a colour.
     post: str of len == 8
-    return: str - hexadeimal repesetation of the colour.
+    return: str - hexadecimal repesetation of the colour.
     """
     out = "0x"
     for part in rgb:
@@ -96,7 +96,7 @@ def hex_to_rgb(hx: str) -> tuple:
     """Return a RGB tuple representation of the colour.
 
     pre: --
-    param: hx: str - hexadeimal notation of the colour
+    param: hx: str - hexadecimal notation of the colour
     post: tuple.
     return: tuple - RGB notation of th colour.
     """
@@ -135,3 +135,8 @@ def rgb_to_cmyk(rgb: tuple) -> tuple:
 
     # rescale to the range [0,CMYK_SCALE]
     return (c * 100, m * 100, y * 100, k * 100)
+
+
+def hex_to_html(hx: str) -> str:
+    """Return HTML expression of the hexadecimal colour."""
+    return "#" + hx[2:]
